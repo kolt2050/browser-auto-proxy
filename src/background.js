@@ -3,8 +3,8 @@ const DEFAULT_PROXY_CONFIG = import.meta.env.VITE_PROXY_CONFIG;
 const GEOSITE_FILE = 'geosite.dat';
 const GEOSITE_URLS = [
     'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat',
-    'https://fastly.jsdelivr.net/gh/runetfreedom/russia-v2ray-rules-dat@release/geosite.dat',
-    'https://cdn.jsdelivr.net/gh/runetfreedom/russia-v2ray-rules-dat@release/geosite.dat'
+    'https://ghfast.top/https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat',
+    'https://raw.githubusercontents.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat'
 ];
 const UPDATE_ALARM_NAME = 'geosite-update';
 const UPDATE_INTERVAL_HOURS = 6;
@@ -73,7 +73,7 @@ async function checkAndUpdateGeosite() {
                 // Добавляем таймаут 10 секунд на каждый запрос, чтобы избежать зависаний
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
-                
+
                 response = await fetch(url, { headers, cache: 'no-cache', signal: controller.signal });
                 clearTimeout(timeoutId);
 
