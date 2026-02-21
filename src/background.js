@@ -45,10 +45,10 @@ async function loadBundledGeosite() {
             await parseAndSaveDomains(buffer);
             console.log('[GeoSite] Loaded bundled geosite.dat');
         } else {
-            console.error('[GeoSite] Failed to load bundled file');
+            console.log('[GeoSite] Bundled file not found, will download from remote');
         }
     } catch (e) {
-        console.error('[GeoSite] Error loading bundled file:', e);
+        console.log('[GeoSite] No bundled file available:', e.message);
     }
 }
 
@@ -70,9 +70,9 @@ async function checkAndUpdateGeosite() {
 
         for (const url of GEOSITE_URLS) {
             try {
-                // Добавляем таймаут 10 секунд на каждый запрос, чтобы избежать зависаний
+                // Добавляем таймаут 2 минуты (120000 мс) на каждый запрос, т.к. файл весит 61 МБ
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const timeoutId = setTimeout(() => controller.abort(), 120000);
 
                 response = await fetch(url, { headers, cache: 'no-cache', signal: controller.signal });
                 clearTimeout(timeoutId);
