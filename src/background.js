@@ -95,8 +95,43 @@ async function checkAndUpdateGeosite() {
         }
 
         if (success && response) {
-            const buffer = await response.arrayBuffer();
-            await parseAndSaveDomains(buffer);
+            // Читаем как поток (stream), чтобы понимать прогресс загрузки
+            const contentLength = response.headers.get('Content-Length');
+            const totalBytes = contentLength ? parseInt(contentLength, 10) : 60000000; // Примерно 60МБ, если нет заголовка
+
+            const reader = response.body.getReader();
+            let receivedBytes = 0;
+            const chunks = [];
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                chunks.push(value);
+                receivedBytes += value.byteLength;
+
+                const percent = Math.round((receivedBytes / totalBytes) * 100);
+
+                // Обновляем прогресс в хранилище (не чаще раза в секунду, но достаточно часто)
+                await chrome.storage.local.set({
+                    downloadProgress: {
+                        status: 'downloading',
+                        percent: percent > 100 ? 100 : percent,
+                        downloadedMb: (receivedBytes / 1024 / 1024).toFixed(1),
+                        totalMb: (totalBytes / 1024 / 1024).toFixed(1)
+                    }
+                });
+            }
+
+            // Объединяем чанки в один ArrayBuffer
+            const totalBuffer = new Uint8Array(receivedBytes);
+            let position = 0;
+            for (const chunk of chunks) {
+                totalBuffer.set(chunk, position);
+                position += chunk.byteLength;
+            }
+
+            await parseAndSaveDomains(totalBuffer.buffer);
 
             // Save ETag for next check
             const newEtag = response.headers.get('ETag');
@@ -108,11 +143,14 @@ async function checkAndUpdateGeosite() {
             await chrome.storage.local.set({ geositeLastUpdate: Date.now() });
 
             console.log('[GeoSite] Updated from remote, new ETag:', newEtag);
+            await chrome.storage.local.set({ downloadProgress: null }); // Очищаем статус успешной загрузки
         } else {
             console.warn('[GeoSite] All remote fetch attempts failed');
+            await chrome.storage.local.set({ downloadProgress: { status: 'error' } });
         }
     } catch (e) {
         console.error('[GeoSite] Update check failed:', e);
+        await chrome.storage.local.set({ downloadProgress: { status: 'error' } });
     }
 }
 

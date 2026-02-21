@@ -256,3 +256,77 @@ footer {
   margin-top: 8px;
   opacity: 0.5;
 }
+
+/* Download Progress Bar */
+.download-progress-container {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: pulse-border 2s infinite;
+}
+
+.download-progress-container.error {
+  border-color: rgba(239, 68, 68, 0.4);
+  animation: none;
+}
+
+.download-progress-text {
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+}
+
+.progress-bar-bg {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  border-radius: 3px;
+  transition: width 0.3s ease-out;
+  position: relative;
+}
+
+/* Striped animation for the fill */
+.progress-bar-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+  animation: progress-stripes 1s linear infinite;
+}
+
+@keyframes progress-stripes {
+  from { background-position: 1rem 0; }
+  to { background-position: 0 0; }
+}
+
+@keyframes pulse-border {
+  0% { border-color: rgba(56, 189, 248, 0.2); }
+  50% { border-color: rgba(56, 189, 248, 0.5); }
+  100% { border-color: rgba(56, 189, 248, 0.2); }
+}

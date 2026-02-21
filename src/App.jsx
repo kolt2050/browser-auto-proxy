@@ -8,14 +8,16 @@ function App() {
     const [proxyConfig, setProxyConfig] = useState('')
     const [country, setCountry] = useState('')
     const [geoReady, setGeoReady] = useState(false)
+    const [downloadProgress, setDownloadProgress] = useState(null)
     const [proxyFocused, setProxyFocused] = useState(false)
     const [proxyStatus, setProxyStatus] = useState(null) // null=checking, true=ok, false=fail
 
     useEffect(() => {
-        chrome.storage.local.get(['isEnabled', 'proxyConfig', 'geoReady'], (result) => {
+        chrome.storage.local.get(['isEnabled', 'proxyConfig', 'geoReady', 'downloadProgress'], (result) => {
             setIsEnabled(result.isEnabled || false)
             setProxyConfig(result.proxyConfig || '')
             setGeoReady(result.geoReady || false)
+            setDownloadProgress(result.downloadProgress || null)
         })
         chrome.storage.sync.get(['sites'], (result) => {
             setSites(result.sites || [])
@@ -23,6 +25,7 @@ function App() {
 
         chrome.storage.onChanged.addListener((changes) => {
             if (changes.geoReady) setGeoReady(changes.geoReady.newValue || false)
+            if (changes.downloadProgress) setDownloadProgress(changes.downloadProgress.newValue || null)
         })
     }, [])
 
@@ -100,6 +103,27 @@ function App() {
                     </label>
                 </div>
             </header>
+
+            {downloadProgress && downloadProgress.status === 'downloading' && (
+                <div className="download-progress-container">
+                    <div className="download-progress-text">
+                        Обновление базы сайтов... {downloadProgress.downloadedMb} / {downloadProgress.totalMb} MB ({downloadProgress.percent}%)
+                    </div>
+                    <div className="progress-bar-bg">
+                        <div
+                            className="progress-bar-fill"
+                            style={{ width: `${downloadProgress.percent}%` }}
+                        ></div>
+                    </div>
+                </div>
+            )}
+            {downloadProgress && downloadProgress.status === 'error' && (
+                <div className="download-progress-container error">
+                    <div className="download-progress-text" style={{ color: '#ef4444' }}>
+                        Ошибка обновления базы сайтов. Расширение использует старую версию.
+                    </div>
+                </div>
+            )}
 
             <main>
                 <section className="config-section">
