@@ -1,6 +1,6 @@
 # Auto Proxy
 
-Расширение для Chrome/Chromium, которое автоматически направляет трафик выбранных сайтов через прокси-сервер.
+Расширение, которое автоматически направляет трафик выбранных сайтов через прокси-сервер.
 
 ## Возможности
 
@@ -15,7 +15,7 @@
 
 ## Privacy Policy
 
-The Privacy Policy for the Chrome Web Store can be found online at: [Privacy Policy Page](https://runetfreedom.github.io/browser-auto-proxy/privacy-policy.html)
+The Privacy Policy for the Chrome Web Store can be found online at: [Privacy Policy Page](https://kolt2050.github.io/browser-auto-proxy/privacy-policy.html)
 
 ## Технологии
 
