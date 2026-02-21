@@ -1,7 +1,11 @@
 import { parseGeoSite } from './geosite-parser.js';
 const DEFAULT_PROXY_CONFIG = import.meta.env.VITE_PROXY_CONFIG;
 const GEOSITE_FILE = 'geosite.dat';
-const GEOSITE_URL = 'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat';
+const GEOSITE_URLS = [
+    'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat',
+    'https://fastly.jsdelivr.net/gh/runetfreedom/russia-v2ray-rules-dat@release/geosite.dat',
+    'https://cdn.jsdelivr.net/gh/runetfreedom/russia-v2ray-rules-dat@release/geosite.dat'
+];
 const UPDATE_ALARM_NAME = 'geosite-update';
 const UPDATE_INTERVAL_HOURS = 6;
 
@@ -18,6 +22,11 @@ const TARGET_CATEGORIES = [
  * Parse geosite.dat buffer and save domains to storage.
  */
 async function parseAndSaveDomains(buffer) {
+    // Basic validation: ensure buffer is not empty and has a reasonable minimum size (e.g., 1KB for geosite.dat)
+    if (!buffer || buffer.byteLength < 1024) {
+        console.error('[GeoSite] Validation failed: buffer is too small or empty');
+        return [];
+    }
     const parsedSites = parseGeoSite(new Uint8Array(buffer), TARGET_CATEGORIES);
     const allSites = [...new Set(parsedSites)];
     console.log(`[GeoSite] Parsed ${allSites.length} unique domains`);
@@ -56,14 +65,36 @@ async function checkAndUpdateGeosite() {
             headers['If-None-Match'] = geositeEtag;
         }
 
-        const response = await fetch(GEOSITE_URL, { headers, cache: 'no-cache' });
+        let response = null;
+        let success = false;
 
-        if (response.status === 304) {
-            console.log('[GeoSite] File not modified (304), skipping update');
-            return;
+        for (const url of GEOSITE_URLS) {
+            try {
+                // Добавляем таймаут 10 секунд на каждый запрос, чтобы избежать зависаний
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                response = await fetch(url, { headers, cache: 'no-cache', signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (response.status === 304) {
+                    console.log('[GeoSite] File not modified (304), skipping update');
+                    return;
+                }
+
+                if (response.ok) {
+                    success = true;
+                    console.log(`[GeoSite] Successfully fetched from: ${url}`);
+                    break;
+                } else {
+                    console.warn(`[GeoSite] Bad status from ${url}:`, response.status);
+                }
+            } catch (err) {
+                console.warn(`[GeoSite] Failed to fetch from ${url}:`, err.message);
+            }
         }
 
-        if (response.ok) {
+        if (success && response) {
             const buffer = await response.arrayBuffer();
             await parseAndSaveDomains(buffer);
 
@@ -78,7 +109,7 @@ async function checkAndUpdateGeosite() {
 
             console.log('[GeoSite] Updated from remote, new ETag:', newEtag);
         } else {
-            console.warn('[GeoSite] Remote fetch failed, status:', response.status);
+            console.warn('[GeoSite] All remote fetch attempts failed');
         }
     } catch (e) {
         console.error('[GeoSite] Update check failed:', e);
@@ -160,12 +191,16 @@ async function updateProxy() {
         return;
     }
 
+    // Sanitize host and port to prevent PAC script injection
+    const safeHost = config.host.replace(/[^a-zA-Z0-9\.-]/g, '');
+    const safePort = config.port.replace(/[^0-9]/g, '');
+
     const pacScript = `
     function FindProxyForURL(url, host) {
       const sites = ${JSON.stringify(allSites)};
       for (const site of sites) {
         if (dnsDomainIs(host, site) || host.endsWith('.' + site)) {
-          return "PROXY ${config.host}:${config.port}";
+          return "PROXY ${safeHost}:${safePort}";
         }
       }
       return "DIRECT";

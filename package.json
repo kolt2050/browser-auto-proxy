@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "download-geosite": "curl -L -o public/geosite.dat https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat",
+    "download-geosite": "curl -L -o public/geosite.dat https://fastly.jsdelivr.net/gh/runetfreedom/russia-v2ray-rules-dat@release/geosite.dat",
     "prebuild": "npm run download-geosite",
     "dev": "vite",
     "build": "vite build",

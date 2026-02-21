@@ -3,6 +3,9 @@
     "name": "Auto Proxy",
     "version": "1.0.0",
     "description": "Auto proxy for blocked sites",
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    },
     "permissions": [
         "proxy",
         "storage",

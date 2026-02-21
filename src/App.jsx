@@ -29,7 +29,7 @@ function App() {
     useEffect(() => {
         const ip = proxyConfig.split(':')[0]
         if (ip && /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
-            fetch(`http://ip-api.com/json/${ip}?fields=country&lang=ru`)
+            fetch(`https://ip-api.com/json/${ip}?fields=country&lang=ru`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.country) setCountry(data.country)
