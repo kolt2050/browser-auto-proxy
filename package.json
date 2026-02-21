@@ -1,0 +1,26 @@
+{
+  "name": "browser-auto-proxy",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "download-geosite": "curl -L -s -o public/geosite.dat https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat",
+    "prebuild": "npm run download-geosite",
+    "dev": "vite",
+    "build": "vite build",
+    "build:zip": "vite build && cd dist && tar -acf ../auto-proxy.zip --exclude=geosite.dat *",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "pbf": "^4.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.269",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.3.4"
+  }
+}
